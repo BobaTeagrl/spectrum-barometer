@@ -1,0 +1,4 @@
+url: "https://192.168.1.1/cgi-bin/warehouse.cgi" # url of your router, default for Askey-RT5010W-D187-REV6 / spectrum router model SAX2V1S
+username: "ThylacineGone" # change only if needed, default for Askey-RT5010W-D187-REV6 / spectrum router model SAX2V1S
+password: "4p@ssThats10ng" # change only if needed, default for Askey-RT5010W-D187-REV6 / spectrum router model SAX2V1S
+wait_time: 10 # how long it waits between reads in seconds(change to minues before release)
