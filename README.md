@@ -2,6 +2,9 @@
 
 Monitor barometric pressure from Spectrum SAX2V1S routers.
 
+# THIS IS A IN DEVELOPMENT BRANCH AND MAY OR MAY NOT WORK
+## work on the web gui and refactoring is kept here
+
 ## Installation
 
 ### Quick install (recommended)
