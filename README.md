@@ -24,6 +24,8 @@ barometer test
 
 ```
 
+![image](./install_screenshot.png "screenshot of install process")
+
 All data is stored in `~/spectrum-barometer/` regardless of where you run the command.
 
 ## Usage
