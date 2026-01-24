@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spectrum-barometer"
-version = "1.0.1"
+version = "1.0.2"
 description = "Monitor barometric pressure from Spectrum SAX2V1S routers"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -16,17 +16,18 @@ maintainers = [
   {name = "BobaTeagrl", email = "Unsorted2750@proton.me"}
 ]
 keywords = ["barometer", "pressure", "monitoring", "spectrum", "router", "messurement"]
+
+license = {text = "MIT-0"}
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: End Users/Desktop",
-    "License :: OSI Approved :: MIT No Attribution License (MIT-0)",
+    "License :: OSI Approved",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-
 
 dependencies = [
     "click>=8.0",
