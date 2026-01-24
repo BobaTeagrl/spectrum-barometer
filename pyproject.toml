@@ -17,7 +17,6 @@ maintainers = [
 ]
 keywords = ["barometer", "pressure", "monitoring", "spectrum", "router", "messurement"]
 
-license = {text = "MIT-0"}
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: End Users/Desktop",
