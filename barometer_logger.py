@@ -427,14 +427,14 @@ def generate_graph(days=7, output=None, graph_type='line', include_archives=Fals
     
     if df is None or df.empty:
         click.echo("No data available to graph")
-        return False
+        return None
     
     cutoff = datetime.now() - timedelta(days=days)
     df_filtered = df[df['timestamp'] > cutoff].copy()
     
     if df_filtered.empty:
         click.echo(f"No data available for the last {days} days")
-        return False
+        return None
     
     output.parent.mkdir(parents=True, exist_ok=True)
     
@@ -466,18 +466,18 @@ def generate_graph(days=7, output=None, graph_type='line', include_archives=Fals
             generate_dashboard(df_filtered, str(output.parent / f'{base_name}_dashboard{ext}'), days)
             
             click.echo(f"Generated 7 graphs in {output.parent}")
-            return True
+            return None
         else:
             click.echo(f"Unknown graph type: {graph_type}")
-            return False
+            return None
         
         click.echo(f"Graph saved to {output}")
-        return True
+        return output
         
     except Exception as e:
         click.echo(f"Error generating graph: {e}")
         logging.error(f"Graph generation failed: {e}")
-        return False
+        return None
 
 
 
@@ -498,7 +498,7 @@ def cli(ctx, verbose):
 @cli.command()
 def version():
     """Show version information"""
-    click.echo("spectrum-barometer version 1.0.3")
+    click.echo("spectrum-barometer version 1.0.4")
 
 
 @cli.command()
@@ -701,7 +701,7 @@ def scrape(ctx):
 
 @cli.command()
 @click.option('--days', '-d', default=7, show_default=True, help='Number of days to display')
-@click.option('--output', '-o', default='none', show_default=True, help='Output file path')
+@click.option('--output', '-o',  show_default=True, help='Output file path')
 @click.option('--type', '-t', 'graph_type', 
               type=click.Choice(['line', 'smooth', 'area', 'daily', 'distribution', 'change', 'dashboard', 'all'], 
                                case_sensitive=False),
@@ -737,14 +737,15 @@ def graph(ctx, days, output, graph_type, archives):
     else:
         click.echo(f"Generating {graph_type} graph for last {days} days...")
     
-    if generate_graph(days, output, graph_type, include_archives=archives):
-        # Show absolute path
-        abs_path = os.path.abspath(output)
-        click.echo(f"Graph generated successfully")
+    result = generate_graph(days, output, graph_type, include_archives=archives)
+
+    if result:
+        abs_path = os.path.abspath(result)
+        click.echo("Graph generated successfully")
         click.echo(f"Location: {abs_path}")
     else:
         click.echo("Failed to generate graph")
-        
+
 @cli.command()
 @click.option('--keep-days', '-k', default=90, show_default=True, help='Keep data from last N days')
 @click.confirmation_option(prompt='This will move old logs and data to archive. Continue?')
