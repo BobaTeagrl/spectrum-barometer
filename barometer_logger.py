@@ -498,7 +498,7 @@ def cli(ctx, verbose):
 @cli.command()
 def version():
     """Show version information"""
-    click.echo("spectrum-barometer version 1.0.2")
+    click.echo("spectrum-barometer version 1.0.3")
 
 
 @cli.command()
