@@ -6,12 +6,12 @@ Monitor barometric pressure from Spectrum SAX2V1S routers.
 
 ### Quick Install (Recommended)
 ```bash
-pipx install git+https://github.com/BobaTeagrl/spectrum_barometer.git
+pipx install git+https://github.com/BobaTeagrl/spectrum-barometer.git
 ```
 
 Or with pip:
 ```bash
-pip install git+https://github.com/BobaTeagrl/spectrum_barometer.git
+pip install git+https://github.com/BobaTeagrl/spectrum-barometer.git
 ```
 
 ### First Time Setup
