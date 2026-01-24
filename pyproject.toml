@@ -27,7 +27,6 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 
-Natural Language :: English
 
 dependencies = [
     "click>=8.0",
