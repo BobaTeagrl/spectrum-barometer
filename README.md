@@ -43,7 +43,7 @@ pipx upgrade spectrum-barometer
 
 or
 
-pip install upgrade spectrum-barometer
+pip install --upgrade spectrum-barometer
 
 # If installed with git
 pipx uninstall spectrum-barometer
