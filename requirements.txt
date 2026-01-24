@@ -1,8 +1,0 @@
-requests
-pandas
-pyyaml
-urllib3
-click
-matplotlib
-lxml
-html5lib

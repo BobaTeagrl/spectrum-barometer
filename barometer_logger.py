@@ -20,10 +20,10 @@ from pathlib import Path
 # disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# save everything to .spectrum-barometer
+# save everything to /spectrum-barometer
 def get_app_dir():
     """Get the application directory, create if needed"""
-    app_dir = Path.home() / '.spectrum-barometer'
+    app_dir = Path.home() / 'spectrum-barometer'
     app_dir.mkdir(exist_ok=True)
     return app_dir
 
@@ -51,17 +51,12 @@ def get_archive_dir():
     return archive_dir
 
 
-
-
-
-
-
-
-
-
 class BarometerScraper:
-    def __init__(self, config_file='config.yaml'):
+    def __init__(self, config_file=None):
         # load config file
+        if config_file is None:
+            config_file = get_config_file()
+        
         with open(config_file, 'r') as file:
             config = yaml.safe_load(file)
         
@@ -744,30 +739,27 @@ def graph(ctx, days, output, graph_type, archives):
         click.echo("Failed to generate graph")
         
 @cli.command()
-@click.option('--keep-days', '-k', default=90, help='Keep data from last N days (default: 90)')
+@click.option('--keep-days', '-k', default=90, show_default=True, help='Keep data from last N days')
 @click.confirmation_option(prompt='This will move old logs and data to archive. Continue?')
 @click.pass_context
 def archive(ctx, keep_days):
     """Archive old logs and data"""
     click.echo(f"Archiving data older than {keep_days} days...")
     
-    # Create archive directory
-    archive_dir = f"archive/{datetime.now().strftime('%Y-%m')}"
-    os.makedirs(archive_dir, exist_ok=True)
+    archive_dir = get_archive_dir() / datetime.now().strftime('%Y-%m')
+    archive_dir.mkdir(parents=True, exist_ok=True)
     
     archived_items = 0
     
-    # Archive logs
-    if os.path.exists('logs/barometer.log'):
-        log_size = os.path.getsize('logs/barometer.log') / 1024 / 1024  # MB
-        if log_size > 10:  # Archive if > 10MB
-            shutil.copy('logs/barometer.log', f'{archive_dir}/barometer.log')
-            # Clear the log file
-            open('logs/barometer.log', 'w').close()
-            click.echo(f"✓ Archived log file ({log_size:.1f} MB)")
+    log_file = get_logs_dir() / 'barometer.log'
+    if log_file.exists():
+        log_size = log_file.stat().st_size / 1024 / 1024
+        if log_size > 10:
+            shutil.copy(log_file, archive_dir / 'barometer.log')
+            log_file.write_text('')
+            click.echo(f"Archived log file ({log_size:.1f} MB)")
             archived_items += 1
     
-    # Archive old CSV data
     df = load_data()
     if df is not None and not df.empty:
         cutoff = datetime.now() - timedelta(days=keep_days)
@@ -775,17 +767,16 @@ def archive(ctx, keep_days):
         recent_data = df[df['timestamp'] >= cutoff]
         
         if not old_data.empty:
-            # Save old data to archive
-            old_data.to_csv(f'{archive_dir}/readings_archive.csv', index=False)
-            # Keep only recent data in main file
-            recent_data.to_csv('data/readings.csv', index=False)
-            click.echo(f" Archived {len(old_data)} old readings")
+            old_data.to_csv(archive_dir / 'readings_archive.csv', index=False)
+            data_file = get_data_dir() / 'readings.csv'
+            recent_data.to_csv(data_file, index=False)
+            click.echo(f"Archived {len(old_data)} old readings")
             archived_items += 1
     
     if archived_items == 0:
         click.echo("No items needed archiving")
     else:
-        click.echo(f"\n Archived {archived_items} item(s) to {archive_dir}")
+        click.echo(f"\nArchived {archived_items} item(s) to {archive_dir}")
 
 
 @cli.command()
