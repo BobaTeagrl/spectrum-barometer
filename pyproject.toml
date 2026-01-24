@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spectrum-barometer"
-version = "1.0.0"
+version = "1.0.1"
 description = "Monitor barometric pressure from Spectrum SAX2V1S routers"
 readme = "README.md"
 requires-python = ">=3.8"

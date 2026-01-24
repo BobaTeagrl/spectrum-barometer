@@ -495,6 +495,11 @@ def cli(ctx, verbose):
     ctx.obj['verbose'] = verbose
     setup_logging(verbose)
 
+@cli.command()
+def version():
+    """Show version information"""
+    click.echo("spectrum-barometer version 1.0.1")
+
 
 @cli.command()
 @click.option('--show', is_flag=True, help='Show current configuration')
@@ -575,19 +580,21 @@ def info(ctx):
     
     graphs_dir = get_graphs_dir()
     graphs = list(graphs_dir.glob('*.png'))
+    click.echo(f"\nGraphs directory: {graphs_dir}")
     if graphs:
-        click.echo(f"\nGraphs directory: {graphs_dir}")
         click.echo(f"  - {len(graphs)} graph(s)")
         for g in graphs:
             click.echo(f"    - {g.name}")
     else:
-        click.echo(f"\nGraphs: None generated yet")
-        click.echo(f"  Run 'barometer graph' to create at: {graphs_dir}")
+        click.echo(f"  - No graphs yet (run 'barometer graph' to create)")
     
     log_file = get_logs_dir() / 'barometer.log'
     if log_file.exists():
         size = log_file.stat().st_size / 1024
         click.echo(f"\nLog file: {log_file} ({size:.1f} KB)")
+    else:
+        click.echo(f"\nLog file: {get_logs_dir() / 'barometer.log'}")
+        click.echo(f"  - Will be created on first run")
     
     archive_dir = get_archive_dir()
     if archive_dir.exists():
@@ -694,7 +701,7 @@ def scrape(ctx):
 
 @cli.command()
 @click.option('--days', '-d', default=7, show_default=True, help='Number of days to display')
-@click.option('--output', '-o', default='graphs/pressure.png', show_default=True, help='Output file path')
+@click.option('--output', '-o', default='none', show_default=True, help='Output file path')
 @click.option('--type', '-t', 'graph_type', 
               type=click.Choice(['line', 'smooth', 'area', 'daily', 'distribution', 'change', 'dashboard', 'all'], 
                                case_sensitive=False),
