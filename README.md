@@ -14,6 +14,14 @@ Or with pip:
 pip install git+https://github.com/BobaTeagrl/spectrum-barometer.git
 ```
 
+## Updating
+
+### For now you need to uninstall and reinstall i plan on making this cleaner soon but pipx only likes git so much
+```bash
+pipx uninstall spectrum-barometer
+pipx install git+https://github.com/BobaTeagrl/spectrum-barometer.git
+```
+
 ### First Time Setup
 ```bash
 # Configure your router credentials
