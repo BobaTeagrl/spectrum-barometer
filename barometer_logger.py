@@ -16,9 +16,48 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.patches import Rectangle
 import numpy as np
-
+from pathlib import Path
 # disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# save everything to .spectrum-barometer
+def get_app_dir():
+    """Get the application directory, create if needed"""
+    app_dir = Path.home() / '.spectrum-barometer'
+    app_dir.mkdir(exist_ok=True)
+    return app_dir
+
+def get_config_file():
+    return get_app_dir() / 'config.yaml'
+
+def get_data_dir():
+    data_dir = get_app_dir() / 'data'
+    data_dir.mkdir(exist_ok=True)
+    return data_dir
+
+def get_logs_dir():
+    logs_dir = get_app_dir() / 'logs'
+    logs_dir.mkdir(exist_ok=True)
+    return logs_dir
+
+def get_graphs_dir():
+    graphs_dir = get_app_dir() / 'graphs'
+    graphs_dir.mkdir(exist_ok=True)
+    return graphs_dir
+
+def get_archive_dir():
+    archive_dir = get_app_dir() / 'archive'
+    archive_dir.mkdir(exist_ok=True)
+    return archive_dir
+
+
+
+
+
+
+
+
+
 
 class BarometerScraper:
     def __init__(self, config_file='config.yaml'):
@@ -87,7 +126,7 @@ class BarometerScraper:
     
     def save_reading(self, pressure):
         # save pressure reading to CSV file
-        os.makedirs('data', exist_ok=True)
+        data_file = get_data_dir() / 'readings.csv'
         
         data = {
             'timestamp': [datetime.now().isoformat()],
@@ -96,8 +135,8 @@ class BarometerScraper:
         }
         
         df = pandas.DataFrame(data)
-        file_exists = os.path.isfile('data/readings.csv')
-        df.to_csv('data/readings.csv', mode='a', header=not file_exists, index=False)
+        file_exists = data_file.exists()
+        df.to_csv(data_file, mode='a', header=not file_exists, index=False)
         
         return True
 
@@ -105,39 +144,38 @@ class BarometerScraper:
 def setup_logging(verbose=False):
     # configure logging
     level = logging.DEBUG if verbose else logging.INFO
-    
-    os.makedirs('logs', exist_ok=True)
+    log_file = get_logs_dir() / 'barometer.log'
     
     logging.basicConfig(
         level=level,
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler('logs/barometer.log'),
+            logging.FileHandler(log_file),
             logging.StreamHandler()
         ]
     )
 
+    #Load readings from CSV, optionally including archives
+
 def load_data(include_archives=False):
-    """Load readings from CSV, optionally including archives"""
+    data_file = get_data_dir() / 'readings.csv'
+    
+    if not data_file.exists():
+        return None
+    
     dfs = []
+    df = pandas.read_csv(data_file)
+    df['timestamp'] = pandas.to_datetime(df['timestamp'])
+    dfs.append(df)
     
-    # load main data file
-    if os.path.exists('data/readings.csv'):
-        df = pandas.read_csv('data/readings.csv')
-        df['timestamp'] = pandas.to_datetime(df['timestamp'])
-        dfs.append(df)
+    if include_archives:
+        archive_dir = get_archive_dir()
+        if archive_dir.exists():
+            for csv_file in archive_dir.rglob('*.csv'):
+                df_archive = pandas.read_csv(csv_file)
+                df_archive['timestamp'] = pandas.to_datetime(df_archive['timestamp'])
+                dfs.append(df_archive)
     
-    # load archives if requested
-    if include_archives and os.path.exists('archive'):
-        for root, dirs, files in os.walk('archive'):
-            for file in files:
-                if file.endswith('.csv'):
-                    archive_path = os.path.join(root, file)
-                    df_archive = pandas.read_csv(archive_path)
-                    df_archive['timestamp'] = pandas.to_datetime(df_archive['timestamp'])
-                    dfs.append(df_archive)
-    
-    # combine all dataframes
     if not dfs:
         return None
     
@@ -382,15 +420,20 @@ def generate_dashboard(df, output, days):
     plt.close()
 
 
-def generate_graph(days=7, output='graphs/pressure.png', graph_type='line', include_archives=False):
+
+def generate_graph(days=7, output=None, graph_type='line', include_archives=False):
     """Generate pressure graph from stored data"""
+    if output is None:
+        output = get_graphs_dir() / 'pressure.png'
+    else:
+        output = Path(output)
+    
     df = load_data(include_archives=include_archives)
     
     if df is None or df.empty:
         click.echo("No data available to graph")
         return False
     
-    # Filter to last N days
     cutoff = datetime.now() - timedelta(days=days)
     df_filtered = df[df['timestamp'] > cutoff].copy()
     
@@ -398,39 +441,36 @@ def generate_graph(days=7, output='graphs/pressure.png', graph_type='line', incl
         click.echo(f"No data available for the last {days} days")
         return False
     
-    # Create output directory
-    os.makedirs('graphs', exist_ok=True)
+    output.parent.mkdir(parents=True, exist_ok=True)
     
-    # Generate appropriate graph type
     try:
         if graph_type == 'line':
-            generate_line_graph(df_filtered, output, days)
+            generate_line_graph(df_filtered, str(output), days)
         elif graph_type == 'smooth':
-            generate_smooth_graph(df_filtered, output, days)
+            generate_smooth_graph(df_filtered, str(output), days)
         elif graph_type == 'area':
-            generate_area_graph(df_filtered, output, days)
+            generate_area_graph(df_filtered, str(output), days)
         elif graph_type == 'daily':
-            generate_daily_summary(df_filtered, output, days)
+            generate_daily_summary(df_filtered, str(output), days)
         elif graph_type == 'distribution':
-            generate_distribution(df_filtered, output, days)
+            generate_distribution(df_filtered, str(output), days)
         elif graph_type == 'change':
-            generate_rate_of_change(df_filtered, output, days)
+            generate_rate_of_change(df_filtered, str(output), days)
         elif graph_type == 'dashboard':
-            generate_dashboard(df_filtered, output, days)
+            generate_dashboard(df_filtered, str(output), days)
         elif graph_type == 'all':
-            # Generate all types
-            base_name = output.rsplit('.', 1)[0]
-            ext = output.rsplit('.', 1)[1] if '.' in output else 'png'
+            base_name = output.stem
+            ext = output.suffix or '.png'
             
-            generate_line_graph(df_filtered, f'{base_name}_line.{ext}', days)
-            generate_smooth_graph(df_filtered, f'{base_name}_smooth.{ext}', days)
-            generate_area_graph(df_filtered, f'{base_name}_area.{ext}', days)
-            generate_daily_summary(df_filtered, f'{base_name}_daily.{ext}', days)
-            generate_distribution(df_filtered, f'{base_name}_distribution.{ext}', days)
-            generate_rate_of_change(df_filtered, f'{base_name}_change.{ext}', days)
-            generate_dashboard(df_filtered, f'{base_name}_dashboard.{ext}', days)
+            generate_line_graph(df_filtered, str(output.parent / f'{base_name}_line{ext}'), days)
+            generate_smooth_graph(df_filtered, str(output.parent / f'{base_name}_smooth{ext}'), days)
+            generate_area_graph(df_filtered, str(output.parent / f'{base_name}_area{ext}'), days)
+            generate_daily_summary(df_filtered, str(output.parent / f'{base_name}_daily{ext}'), days)
+            generate_distribution(df_filtered, str(output.parent / f'{base_name}_distribution{ext}'), days)
+            generate_rate_of_change(df_filtered, str(output.parent / f'{base_name}_change{ext}'), days)
+            generate_dashboard(df_filtered, str(output.parent / f'{base_name}_dashboard{ext}'), days)
             
-            click.echo(f"Generated 7 graphs in graphs/ directory")
+            click.echo(f"Generated 7 graphs in {output.parent}")
             return True
         else:
             click.echo(f"Unknown graph type: {graph_type}")
@@ -459,6 +499,111 @@ def cli(ctx, verbose):
     ctx.ensure_object(dict)
     ctx.obj['verbose'] = verbose
     setup_logging(verbose)
+
+
+@cli.command()
+@click.option('--show', is_flag=True, help='Show current configuration')
+@click.pass_context
+def config(ctx, show):
+    """Manage configuration file"""
+    config_file = get_config_file()
+    
+    if show:
+        if config_file.exists():
+            with open(config_file, 'r') as f:
+                cfg = yaml.safe_load(f)
+            click.echo("\nCurrent Configuration:")
+            click.echo("="*50)
+            click.echo(f"URL: {cfg.get('url', 'Not set')}")
+            click.echo(f"Username: {cfg.get('username', 'Not set')}")
+            click.echo(f"Password: {'*' * len(cfg.get('password', '')) if cfg.get('password') else 'Not set'}")
+            click.echo(f"\nConfig location: {config_file}")
+        else:
+            click.echo(f"No config file found at: {config_file}")
+            click.echo("Run 'barometer config' to create one")
+        return
+    
+    click.echo("Configuration Setup")
+    click.echo("="*50)
+    
+    if config_file.exists():
+        click.echo(f"\nConfig file already exists at: {config_file}")
+        if not click.confirm("Overwrite existing configuration?"):
+            click.echo("Configuration unchanged")
+            return
+    
+    url = click.prompt("Router URL", default="https://192.168.1.1/cgi-bin/warehouse.cgi")
+    username = click.prompt("Username", default="ThylacineGone")
+    password = click.prompt("Password", default="4p@ssThats10ng")
+    
+    config_data = {
+        'url': url,
+        'username': username,
+        'password': password
+    }
+    
+    with open(config_file, 'w') as f:
+        yaml.dump(config_data, f, default_flow_style=False)
+    
+    click.echo(f"\nConfiguration saved to: {config_file}")
+    click.echo("You can now run: barometer test")
+
+
+@cli.command()
+@click.pass_context
+def info(ctx):
+    """Show information about data locations and project setup"""
+    click.echo("\nBarometer Project Information")
+    click.echo("="*50)
+    
+    app_dir = get_app_dir()
+    click.echo(f"App directory: {app_dir}")
+    
+    config_file = get_config_file()
+    if config_file.exists():
+        click.echo(f"\nConfig file: {config_file}")
+    else:
+        click.echo(f"\nConfig file: NOT FOUND")
+        click.echo(f"  Run 'barometer config' to create at: {config_file}")
+    
+    data_file = get_data_dir() / 'readings.csv'
+    if data_file.exists():
+        size = data_file.stat().st_size / 1024
+        click.echo(f"\nData file: {data_file} ({size:.1f} KB)")
+        df = load_data()
+        if df is not None and not df.empty:
+            click.echo(f"  - {len(df)} readings")
+            click.echo(f"  - From {df['timestamp'].min()} to {df['timestamp'].max()}")
+    else:
+        click.echo(f"\nData file: NOT FOUND")
+        click.echo(f"  Run 'barometer scrape' to start collecting")
+    
+    graphs_dir = get_graphs_dir()
+    graphs = list(graphs_dir.glob('*.png'))
+    if graphs:
+        click.echo(f"\nGraphs directory: {graphs_dir}")
+        click.echo(f"  - {len(graphs)} graph(s)")
+        for g in graphs:
+            click.echo(f"    - {g.name}")
+    else:
+        click.echo(f"\nGraphs: None generated yet")
+        click.echo(f"  Run 'barometer graph' to create at: {graphs_dir}")
+    
+    log_file = get_logs_dir() / 'barometer.log'
+    if log_file.exists():
+        size = log_file.stat().st_size / 1024
+        click.echo(f"\nLog file: {log_file} ({size:.1f} KB)")
+    
+    archive_dir = get_archive_dir()
+    if archive_dir.exists():
+        archive_files = list(archive_dir.rglob('*.csv'))
+        if archive_files:
+            click.echo(f"\nArchives: {archive_dir}")
+            click.echo(f"  - {len(archive_files)} archive file(s)")
+
+
+
+
 
 
 @cli.command()

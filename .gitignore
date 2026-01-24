@@ -4,6 +4,7 @@ data/
 /logs
 /graphs
 archive/
+config.yaml
 
 # Python
 __pycache__/
