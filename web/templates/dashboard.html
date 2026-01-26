@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Barometer Dashboard</title>
+    <style>
+        body.dark {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #213C51;
+        }
+
+        .card {
+            background: #005461;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .current-reading {
+            font-size: 48px;
+            font-weight: bold;
+            color: #DDAED3;
+            text-align: center;
+        }
+        .timestamp {
+            text-align: center;
+            color: #DDAED3;
+            margin-top: 10px;
+        }
+        button {
+            background: #2E86AB;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #DDAED3;
+        }
+        .graph {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .flash {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .flash.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .flash.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .flash.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        nav {
+            background: #DDAED3;
+            padding: 15px;
+            margin: -20px -20px 20px -20px;
+            border-radius: 8px 8px 0 0;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .center-header {
+          text-align: center;
+          font-size: 2rem;
+          color: #DDAED3;
+      }
+      a {
+        color: #DDAED3;
+      }
+    .button-container form,
+    .button-container form div {
+        display: inline;
+        margin: 20px 0;
+
+    }
+
+    .button-container button {
+        display: inline;
+        vertical-align: middle;
+        margin: 20px 0;
+
+    }
+    </style>
+    <!-- theme switching might add keep just dark for now -->
+</head>
+<body class="{{ theme }}">
+  <div class="card" >
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}" >Dashboard</a>
+            <a href="{{ url_for('main.stats') }}">Statistics</a>
+        </nav>
+        
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <h1 class="center-header" >Barometer Dashboard</h1>
+        
+        {% if latest %}
+            <div class="current-reading">
+                {{ "%.2f"|format(latest.pressure) }} hPa
+            </div>
+            <div class="timestamp">
+                Last reading: {{ latest.timestamp }}
+            </div>
+        {% else %}
+            <p>No data available yet. Run the monitor to collect data.</p>
+        {% endif %}
+                <div class="button-container">
+
+        <form method="post" action="{{ url_for('main.generate') }}">          
+          <button type="submit">Generate</button>
+        </form>
+            
+            <form action="{{ url_for('main.archive') }}" method="post" style="display: inline;">
+                <button type="submit" onclick="return confirm('Archive old data?')">
+                    Archive Data
+                </button>
+            </form>
+              </div>
+
+        {% if has_graphs %}
+        <img src="{{ url_for('main.graph_file', name='pressure.png') }}?v={{ graph_ts }}"
+             alt="Pressure graph" width="100%">
+        {% endif %}
+        </div>
+    </div>
+</body>
+</html>

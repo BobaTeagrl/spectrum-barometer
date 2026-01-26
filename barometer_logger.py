@@ -13,8 +13,7 @@ import shutil
 from barometer.paths import get_config_file, get_app_dir, get_data_dir, get_archive_dir, get_graphs_dir, get_logs_dir
 from barometer.graphs import  generate_area_graph, generate_daily_summary, generate_dashboard, generate_distribution, generate_graph, generate_line_graph, generate_rate_of_change, generate_smooth_graph
 from barometer.data import load_data, setup_logging
-
-
+from barometer.actions import  archive_old_data, get_latest_reading, get_statistics, scrape_single_reading
 # disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -305,26 +304,15 @@ def monitor(ctx, interval):
 @click.pass_context
 def scrape(ctx):
     """perform a single scrape and save reading"""
+    
     click.echo("Performing single scrape...")
     
-    try:
-        scraper = BarometerScraper()
-        response = scraper.login()
-        
-        if response:
-            pressure = scraper.extract_barometer_value(response.text)
-            
-            if pressure:
-                scraper.save_reading(pressure)
-                click.echo(f" Reading saved: {pressure} Pa ({pressure/100:.2f} hPa)")
-            else:
-                click.echo(" Failed to extract pressure value")
-        else:
-            click.echo(" Connection failed")
-            
-    except Exception as e:
-        click.echo(f" Error: {e}")
-
+    result = scrape_single_reading()
+    
+    if result['success']:
+        click.echo(result['message'])
+    else:
+        click.echo(f"Failed: {result['message']}")
 
 @cli.command()
 @click.option('--days', '-d', default=7, show_default=True, help='Number of days to display')
@@ -379,80 +367,62 @@ def graph(ctx, days, output, graph_type, archives):
 @click.pass_context
 def archive(ctx, keep_days):
     """Archive old logs and data"""
+    
     click.echo(f"Archiving data older than {keep_days} days...")
     
-    archive_dir = get_archive_dir() / datetime.now().strftime('%Y-%m')
-    archive_dir.mkdir(parents=True, exist_ok=True)
+    result = archive_old_data(keep_days)
     
-    archived_items = 0
-    
-    log_file = get_logs_dir() / 'barometer.log'
-    if log_file.exists():
-        log_size = log_file.stat().st_size / 1024 / 1024
-        if log_size > 10:
-            shutil.copy(log_file, archive_dir / 'barometer.log')
-            log_file.write_text('')
-            click.echo(f"Archived log file ({log_size:.1f} MB)")
-            archived_items += 1
-    
-    df = load_data()
-    if df is not None and not df.empty:
-        cutoff = datetime.now() - timedelta(days=keep_days)
-        old_data = df[df['timestamp'] < cutoff]
-        recent_data = df[df['timestamp'] >= cutoff]
-        
-        if not old_data.empty:
-            old_data.to_csv(archive_dir / 'readings_archive.csv', index=False)
-            data_file = get_data_dir() / 'readings.csv'
-            recent_data.to_csv(data_file, index=False)
-            click.echo(f"Archived {len(old_data)} old readings")
-            archived_items += 1
-    
-    if archived_items == 0:
-        click.echo("No items needed archiving")
+    if result['success']:
+        click.echo(result['message'])
+        if result['archive_path']:
+            click.echo(f"Archive location: {result['archive_path']}")
     else:
-        click.echo(f"\nArchived {archived_items} item(s) to {archive_dir}")
-
+        click.echo(f"Failed: {result['message']}")
 
 @cli.command()
 @click.pass_context
 def stats(ctx):
     """Show statistics about collected data"""
-    df = load_data(include_archives=False)
     
-    if df is None or df.empty:
+    stats = get_statistics(include_archives=False)
+    
+    if stats is None:
         click.echo("No data available")
         return
     
     click.echo("\nStatistics\n" + "="*50)
-    click.echo(f"Total readings: {len(df)}")
-    click.echo(f"First reading: {df['timestamp'].min()}")
-    click.echo(f"Last reading: {df['timestamp'].max()}")
-    click.echo(f"Duration: {(df['timestamp'].max() - df['timestamp'].min()).days} days")
+    click.echo(f"Total readings: {stats['total_readings']}")
+    click.echo(f"First reading: {stats['first_reading']}")
+    click.echo(f"Last reading: {stats['last_reading']}")
+    click.echo(f"Duration: {stats['duration_days']} days")
     
     click.echo(f"\nPressure Statistics (hPa)\n" + "="*50)
-    click.echo(f"Current: {df['pressure_hpa'].iloc[-1]:.2f}")
-    click.echo(f"Average: {df['pressure_hpa'].mean():.2f}")
-    click.echo(f"Minimum: {df['pressure_hpa'].min():.2f}")
-    click.echo(f"Maximum: {df['pressure_hpa'].max():.2f}")
-    click.echo(f"Range: {df['pressure_hpa'].max() - df['pressure_hpa'].min():.2f}")
+    p = stats['pressure']
+    click.echo(f"Current: {p['current']:.2f}")
+    click.echo(f"Average: {p['average']:.2f}")
+    click.echo(f"Minimum: {p['minimum']:.2f}")
+    click.echo(f"Maximum: {p['maximum']:.2f}")
+    click.echo(f"Range: {p['range']:.2f}")
     
-    # Last 24 hours
-    last_24h = df[df['timestamp'] > (datetime.now() - timedelta(hours=24))]
-    if not last_24h.empty:
+    if 'last_24h' in stats:
         click.echo(f"\nLast 24 Hours\n" + "="*50)
-        click.echo(f"Readings: {len(last_24h)}")
-        click.echo(f"Average: {last_24h['pressure_hpa'].mean():.2f} hPa")
-        change = last_24h['pressure_hpa'].iloc[-1] - last_24h['pressure_hpa'].iloc[0]
-        click.echo(f"Change: {change:+.2f} hPa")
-    
-    # Check for archives
-    if os.path.exists('archive'):
-        archive_count = 0
-        for root, dirs, files in os.walk('archive'):
-            archive_count += len([f for f in files if f.endswith('.csv')])
-        if archive_count > 0:
-            click.echo(f"\nArchives: {archive_count} file(s) available (use --archives flag to include)")
+        h24 = stats['last_24h']
+        click.echo(f"Readings: {h24['readings']}")
+        click.echo(f"Average: {h24['average']:.2f} hPa")
+        click.echo(f"Change: {h24['change']:+.2f} hPa")
+
+
+
+# web gui
+@cli.command()
+@click.option("--port", default=5000)
+def web(port):
+    """Run local web dashboard"""
+    from web.app import create_app
+
+    app = create_app()
+    click.echo(f"Web UI running at http://127.0.0.1:{port}")
+    app.run(host="127.0.0.1", port=5000)
 
 
 if __name__ == "__main__":

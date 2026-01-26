@@ -8,9 +8,9 @@ from matplotlib.patches import Rectangle
 from datetime import datetime, timedelta
 import click
 import logging
+from qbstyles import mpl_style
 
-
-
+mpl_style(dark=True)
 def generate_line_graph(df, output, days):
     """Standard line graph"""
     fig, ax = plt.subplots(figsize=(12, 6))
@@ -245,14 +245,22 @@ def generate_dashboard(df, output, days):
     plt.close()
 
 
+def apply_theme(theme: str):
+    if theme == "dark":
+        mpl_style(dark=True)
+    else:
+        mpl_style(dark=False)
 
-def generate_graph(days=7, output=None, graph_type='line', include_archives=False):
-    """Generate pressure graph from stored data"""
+
+def generate_graph(days=7, output=None, graph_type='line',
+                   include_archives=False, theme="dark"):
     if output is None:
         output = get_graphs_dir() / 'pressure.png'
     else:
         output = Path(output)
-    
+        
+    apply_theme(theme)
+
     df = load_data(include_archives=include_archives)
     
     if df is None or df.empty:

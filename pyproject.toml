@@ -37,6 +37,8 @@ dependencies = [
     "matplotlib>=3.4",
     "lxml>=4.6",
     "html5lib>=1.1",
+    "flask",
+    "qbstyles"
 ]
 
 [project.urls]
