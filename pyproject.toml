@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spectrum-barometer"
-version = "1.0.4"
+version = "2.0.0"
 description = "Monitor barometric pressure from Spectrum SAX2V1S routers"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -12,11 +12,7 @@ license = {text = "MIT"}
 authors = [
     {name = "BobaTeagrl", email = "Unsorted2750@proton.me"}
 ]
-maintainers = [
-  {name = "BobaTeagrl", email = "Unsorted2750@proton.me"}
-]
-keywords = ["barometer", "pressure", "monitoring", "spectrum", "router", "messurement"]
-
+keywords = ["barometer", "pressure", "monitoring", "spectrum", "router", "measurement", "sax2v1s"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: End Users/Desktop",
@@ -26,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 dependencies = [
@@ -37,8 +34,10 @@ dependencies = [
     "matplotlib>=3.4",
     "lxml>=4.6",
     "html5lib>=1.1",
-    "flask",
-    "qbstyles"
+    "numpy>=1.20",
+    "flask>=2.0",
+    "qbstyles",
+    "psutil>=5.8"
 ]
 
 [project.urls]
@@ -48,3 +47,8 @@ Issues = "https://github.com/BobaTeagrl/spectrum-barometer/issues"
 
 [project.scripts]
 barometer = "barometer_logger:cli"
+
+[tool.setuptools]
+packages = ["barometer", "web"]
+include-package-data = true
+py-modules = ["barometer_logger"]

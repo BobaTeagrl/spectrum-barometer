@@ -10,6 +10,7 @@ import click
 import logging
 from qbstyles import mpl_style
 
+
 mpl_style(dark=True)
 def generate_line_graph(df, output, days):
     """Standard line graph"""
@@ -254,12 +255,14 @@ def apply_theme(theme: str):
 
 def generate_graph(days=7, output=None, graph_type='line',
                    include_archives=False, theme="dark"):
+    days = int(days)
     if output is None:
         output = get_graphs_dir() / 'pressure.png'
     else:
         output = Path(output)
         
     apply_theme(theme)
+
 
     df = load_data(include_archives=include_archives)
     

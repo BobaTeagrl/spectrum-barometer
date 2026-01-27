@@ -4,6 +4,7 @@ from barometer.graphs import generate_graph
 from barometer.paths import get_graphs_dir
 from barometer.actions import archive_old_data, get_statistics, get_latest_reading, scrape_single_reading
 from time import time
+from barometer.background import start_monitoring, stop_monitoring, get_monitor_info
 
 bp = Blueprint("main", __name__)
 
@@ -14,13 +15,16 @@ def dashboard():
     latest = get_latest_reading()
     graphs_dir = get_graphs_dir()
     graphs = list(graphs_dir.glob('*.png'))
+    monitor_info = get_monitor_info() 
 
     return render_template(
         "dashboard.html",
         latest=latest,
         has_graphs=len(graphs) > 0,
         theme=theme,
-        graph_ts=int(time())  
+        graph_ts=int(time()),
+        monitor=monitor_info,
+        graph_types=['line', 'smooth', 'area', 'daily', 'distribution', 'change', 'dashboard'],
     )
 
 @bp.route("/graph/<name>")
@@ -32,16 +36,19 @@ def graph_file(name):
 @bp.route("/generate", methods=["POST"])
 def generate():
     theme = request.form.get("theme", "dark")
-    
+    days = request.form.get("days")
+    days = int(days)
+    print(days, type(days))
     try:
-        result = generate_graph(days=7, output=None, graph_type='dashboard', include_archives=False)
+        result = generate_graph(days=days, output=None, graph_type='dashboard', include_archives=False)
         if result:
             flash("Graph generated successfully!", "success")
         else:
             flash("Failed to generate graph", "error")
     except Exception as e:
         flash(f"Error generating graph: {e}", "error")
-    
+        print(days, type(days))
+
     return redirect(url_for("main.dashboard"))
 
 
@@ -57,11 +64,11 @@ def scrape():
     
     return redirect(url_for("main.dashboard"))
 
-
 @bp.route("/archive", methods=["POST"])
 def archive():
+    keep_days = request.form.get("keep_days", 90, type=int)
     
-    result = archive_old_data(keep_days=90)
+    result = archive_old_data(keep_days=keep_days)
     
     if result['success']:
         flash(result['message'], "success")
@@ -77,3 +84,31 @@ def stats():
     stats_data = get_statistics(include_archives=False)
     
     return render_template("stats.html", stats=stats_data)
+
+
+@bp.route("/monitor/start", methods=["POST"])
+def monitor_start():
+    interval = request.form.get('interval', 300, type=int)
+    
+    result = start_monitoring(interval)
+    
+    if result['success']:
+        flash(result['message'], "success")
+    else:
+        flash(result['message'], "error")
+    
+    return redirect(url_for("main.dashboard"))
+
+
+@bp.route("/monitor/stop", methods=["POST"])
+def monitor_stop():
+    result = stop_monitoring()
+    
+    if result['success']:
+        flash(result['message'], "success")
+    else:
+        flash(result['message'], "error")
+    
+    return redirect(url_for("main.dashboard"))
+
+

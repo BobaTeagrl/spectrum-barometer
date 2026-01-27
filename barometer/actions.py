@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import shutil
 from pathlib import Path
 import pandas
-
+import psutil
 from barometer.paths import get_config_file, get_data_dir, get_archive_dir, get_logs_dir
 from barometer.data import load_data
 

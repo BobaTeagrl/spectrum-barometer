@@ -124,7 +124,7 @@ def cli(ctx, verbose):
 @cli.command()
 def version():
     """Show version information"""
-    click.echo("spectrum-barometer version 1.0.4")
+    click.echo("spectrum-barometer version 2.0.0! (that was fast :3)")
 
 
 @cli.command()
@@ -261,7 +261,7 @@ def test(ctx):
         click.echo(f" Error: {e}")
         logging.error(f"Test failed: {e}")
 
-
+'''
 @cli.command()
 @click.option('--interval', '-i', default=300, help='Interval between readings in seconds (default: 300)')
 @click.pass_context
@@ -298,7 +298,7 @@ def monitor(ctx, interval):
             logging.error(f"Monitor error: {e}")
         
         time.sleep(interval)
-
+'''
 
 @cli.command()
 @click.pass_context
@@ -415,15 +415,62 @@ def stats(ctx):
 
 # web gui
 @cli.command()
-@click.option("--port", default=5000)
+@click.option("--port", default=5888 )
 def web(port):
     """Run local web dashboard"""
     from web.app import create_app
 
     app = create_app()
     click.echo(f"Web UI running at http://127.0.0.1:{port}")
-    app.run(host="127.0.0.1", port=5000)
+    app.run(host="127.0.0.1", port=5888)
 
+
+@cli.command()
+@click.pass_context
+def status(ctx):
+    """Check monitoring status"""
+
+    from barometer.background import get_monitor_info
+    
+    info = get_monitor_info()
+    
+    if info['running']:
+        click.echo(f"✓ Monitoring is RUNNING")
+        click.echo(f"  Interval: {info['interval']} seconds")
+    else:
+        click.echo("✗ Monitoring is STOPPED")
+
+
+@cli.command()
+@click.option('--interval', '-i', default=300, show_default=True, help='Interval between readings in seconds')
+@click.pass_context
+def start(ctx, interval):
+    """Start background monitoring"""
+    
+    from barometer.background import start_monitoring
+
+    result = start_monitoring(interval)
+    
+    if result['success']:
+        click.echo(f"✓ {result['message']}")
+        click.echo(f"  PID: {result['pid']}")
+    else:
+        click.echo(f"✗ {result['message']}")
+
+
+@cli.command()
+@click.pass_context
+def stop(ctx):
+    """Stop background monitoring"""
+
+    from barometer.background import stop_monitoring
+
+    result = stop_monitoring()
+    
+    if result['success']:
+        click.echo(f"✓ {result['message']}")
+    else:
+        click.echo(f"✗ {result['message']}")
 
 if __name__ == "__main__":
     cli(obj={})

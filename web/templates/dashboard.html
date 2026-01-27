@@ -8,15 +8,15 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background: #213C51;
+            background: #0d1627;
         }
 
         .card {
-            background: #005461;
+            background: #0c1c23;
             padding: 20px;
             margin: 20px 0;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: (#0b1b22);
         }
         .current-reading {
             font-size: 48px;
@@ -29,16 +29,7 @@
             color: #DDAED3;
             margin-top: 10px;
         }
-        button {
-            background: #2E86AB;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 5px;
-        }
+
         button:hover {
             background: #DDAED3;
         }
@@ -68,12 +59,14 @@
             padding: 15px;
             margin: -20px -20px 20px -20px;
             border-radius: 8px 8px 0 0;
+
         }
         nav a {
             color: white;
             text-decoration: none;
             margin: 0 15px;
             font-size: 18px;
+        
         }
         nav a:hover {
             text-decoration: underline;
@@ -82,23 +75,129 @@
           text-align: center;
           font-size: 2rem;
           color: #DDAED3;
-      }
-      a {
-        color: #DDAED3;
-      }
-    .button-container form,
-    .button-container form div {
-        display: inline;
-        margin: 20px 0;
+        }
+        a {
+            color: #DDAED3;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .button-container form {
+            display: inline-block;
+            margin: 0 5px;
+        }
+        
+        button {
+            background: #1f2c79;
+            color: #DDAED3;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #1A5F7A;
+        }
+        button.btn-success {
+            background: #1f2c79;
+        }
+        button.btn-success:hover {
+            background: #0a6ea8;
+        }
+        button.btn-danger {
+            background: #dc3545;
+        }
+        button.btn-danger:hover {
+            background: #c82333;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        button:hover {
+            background: #1A5F7A;
+        }
 
-    }
+        .status-stopped {
+            color: #721c24;
+        }
+        .status-running{
+            color: #DDAED3;
+        }
+        .monitor-controls {
+            background: #0c1c23;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #DDAED3;
+            text-align: center;
+        }
+        .monitor-controls h3 {
+            margin-top: 0;
+        }
+        .monitor-controls form {
+            display: inline-block;  
+            margin: 10px 0;
+}
+        .interval-input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #DDAED3;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 0 10px;
+            background-color: #DDAED3;
+      
+        }
+        h1,h2 {
+            color: #DDAED3;
+            text-align: center;
+        }
+        .version{
+            color: #7b0dbb;
+            text-align: right;
+        
+        }
 
-    .button-container button {
-        display: inline;
-        vertical-align: middle;
-        margin: 20px 0;
-
-    }
+        .monitor-controls, .graph-controls, .archive-controls {
+            background: #0c1c23;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            color: #DDAED3;
+        }
+        .monitor-controls h3, .graph-controls h3, .archive-controls h3 {
+            margin-top: 0;
+        }
+        .monitor-controls p, .graph-controls p, .archive-controls p {
+            margin: 10px 0;
+        }
+        .monitor-controls form, .graph-controls form, .archive-controls form {
+            margin: 15px 0;
+        }
+        .monitor-controls label, .graph-controls label, .archive-controls label {
+            display: inline-block;
+            margin: 0 10px;
+            
+        }
+        .input-field, select {
+            padding: 8px;
+            border: 1px solid #DDAED3;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 0 5px;
+            background-color: #DDAED3;
+        }
+        .input-field {
+            width: 80px;
+        }
+        select {
+            width: 150px;
+        }
     </style>
     <!-- theme switching might add keep just dark for now -->
 </head>
@@ -107,6 +206,7 @@
         <nav>
             <a href="{{ url_for('main.dashboard') }}" >Dashboard</a>
             <a href="{{ url_for('main.stats') }}">Statistics</a>
+            <a class="version" href="https://github.com/BobaTeagrl/spectrum-barometer">V 2.0.0 :3</a>
         </nav>
         
         <!-- Flash messages -->
@@ -117,31 +217,90 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
-        <h1 class="center-header" >Barometer Dashboard</h1>
-        
+    
+
+        <h1>
+            Barometer Dashboard
+            {% if monitor.running %}
+                <span class="status-badge status-running">● Monitoring</span>
+            {% else %}
+                <span class="status-badge status-stopped">● Stopped</span>
+            {% endif %}
+        </h1>      
+
         {% if latest %}
-            <div class="current-reading">
-                {{ "%.2f"|format(latest.pressure) }} hPa
+        <div class="current-reading">
+            {{ "%.2f"|format(latest.pressure) }} hPa
+        </div>
+        <div class="timestamp">
+            Last reading: {{ latest.timestamp }}
+        </div>
+    {% else %}
+        <p>No data available yet. Run the monitor to collect data.</p>
+    {% endif %}
+        
+        <div class="monitor-controls">
+            <h3>Background Monitoring</h3>
+            
+            {% if monitor.running %}
+                <p>
+                    Currently monitoring every 
+                    <strong>{{ monitor.interval }}</strong> seconds
+                </p>
+                <form action="{{ url_for('main.monitor_stop') }}" method="post">
+                    <button type="submit" class="btn-danger">Stop Monitoring</button>
+                </form>
+            {% else %}
+                <p>Start automatic data collection in the background</p>
+                <form action="{{ url_for('main.monitor_start') }}" method="post" style="align-items: center; gap: 10px;">
+                    <label>
+                        Interval:
+                        <input type="number" 
+                               name="interval" 
+                               value="300" 
+                               min="0" 
+                               max="3600" 
+                               class="interval-input">
+                        seconds
+                    </label>
+                    <button type="submit" class="btn-success">Start Monitoring</button>
+                </form>
+            {% endif %}
             </div>
-            <div class="timestamp">
-                Last reading: {{ latest.timestamp }}
-            </div>
-        {% else %}
-            <p>No data available yet. Run the monitor to collect data.</p>
-        {% endif %}
+
+
                 <div class="button-container">
 
-        <form method="post" action="{{ url_for('main.generate') }}">          
-          <button type="submit">Generate</button>
-        </form>
-            
-            <form action="{{ url_for('main.archive') }}" method="post" style="display: inline;">
-                <button type="submit" onclick="return confirm('Archive old data?')">
+                    <div class="graph-controls">
+                        <h3>Generate Graph</h3>
+                        <form action="{{ url_for('main.generate') }}" method="post">
+
+                            <label>
+                                Days:
+                                <input type="number" name="days" value="7" min="1" max="365" class="input-field">
+                            </label>
+                            <button type="submit">Generate</button>
+                        </form>
+                    </div>
+
+
+        <div class="archive-controls">
+            <h3>Data Management</h3>
+            <form action="{{ url_for('main.scrape') }}" method="post" style="display: inline-block; margin: 10px;">
+                <button type="submit">Scrape Now</button>
+            </form>
+            <form action="{{ url_for('main.archive') }}" method="post" style="display: inline-block; margin: 10px;">
+                <label>
+                    Keep last:
+                    <input type="number" name="keep_days" value="90" min="0" max="365" class="input-field">
+                    days
+                </label>
+                <button type="submit" onclick="return confirm('Archive older data?')">
                     Archive Data
                 </button>
             </form>
-              </div>
+        </div>
+
 
         {% if has_graphs %}
         <img src="{{ url_for('main.graph_file', name='pressure.png') }}?v={{ graph_ts }}"

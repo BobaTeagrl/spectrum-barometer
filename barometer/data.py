@@ -12,7 +12,7 @@ def load_data(include_archives=False):
     
     dfs = []
     df = pandas.read_csv(data_file)
-    df['timestamp'] = pandas.to_datetime(df['timestamp'])
+    df['timestamp'] = pandas.to_datetime(df['timestamp'], format='ISO8601')
     dfs.append(df)
     
     if include_archives:
@@ -20,7 +20,7 @@ def load_data(include_archives=False):
         if archive_dir.exists():
             for csv_file in archive_dir.rglob('*.csv'):
                 df_archive = pandas.read_csv(csv_file)
-                df_archive['timestamp'] = pandas.to_datetime(df_archive['timestamp'])
+                df_archive['timestamp'] = pandas.to_datetime(df_archive['timestamp'], format='ISO8601')
                 dfs.append(df_archive)
     
     if not dfs:
