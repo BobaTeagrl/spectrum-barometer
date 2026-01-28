@@ -64,7 +64,7 @@ barometer test
 
 ```
 
-![image](./install_screenshot.png "screenshot of install process")
+![image](./README_IMAGES/install.png "screenshot of install process")
 
 All data is stored in `~/spectrum-barometer/` regardless of where you run the command.
 
@@ -102,7 +102,9 @@ Append --help to any command to see extra options
 
 Both the cli and web UI are seperate from the scraper, meaning you can start, stop and check its status from either at any time and if started, it will continue to run until turned off. Even if the local server for the UI is stopped. This is double sided as it makes background operation effortless while also making it easy to forget its running in the background (helped by how few recorces it takes up)
 
-(screenshots here soon)
+![image](./README_IMAGES/webui.png "web ui dashboard")
+![image](./README_IMAGES/stats.png "web stats page")
+
 ## Finding Your Data
 
 Everything is stored in `~/spectrum-barometer/`:
