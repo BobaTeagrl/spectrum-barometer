@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Statistics</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0d1627;
+        }
+        .card {
+            background: #0c1c23;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px #0b1b22;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .stat-item {
+            background: #141e58;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .stat-label {
+            color: #DDAED3;
+            font-size: 14px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #DDAED3;
+            margin-top: 5px;
+        }
+        nav {
+            background: #DDAED3;
+            padding: 15px;
+            margin: -20px -20px 20px -20px;
+            border-radius: 8px 8px 0 0;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        h1,h2 {
+            color: #DDAED3;
+            text-align: center;
+        }
+        .version{
+            color: #7b0dbb;
+            text-align: right;
+        
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.stats') }}">Statistics</a>
+            <a class="version" href="https://github.com/BobaTeagrl/spectrum-barometer">V 2.0.0 :3</a>
+
+        </nav>
+        
+        <h1>Statistics</h1>
+        
+        {% if stats %}
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Total Readings</div>
+                    <div class="stat-value">{{ stats.total_readings }}</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-label">Current</div>
+                    <div class="stat-value">{{ "%.2f"|format(stats.pressure.current) }} hPa</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-label">Average</div>
+                    <div class="stat-value">{{ "%.2f"|format(stats.pressure.average) }} hPa</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-label">Minimum</div>
+                    <div class="stat-value">{{ "%.2f"|format(stats.pressure.minimum) }} hPa</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-label">Maximum</div>
+                    <div class="stat-value">{{ "%.2f"|format(stats.pressure.maximum) }} hPa</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-label">Range</div>
+                    <div class="stat-value">{{ "%.2f"|format(stats.pressure.range) }} hPa</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-label">Duration</div>
+                    <div class="stat-value">{{ stats.duration_days }} days</div>
+                </div>
+            </div>
+            
+            {% if stats.last_24h %}
+                <h2>Last 24 Hours</h2>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Readings</div>
+                        <div class="stat-value">{{ stats.last_24h.readings }}</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Average</div>
+                        <div class="stat-value">{{ "%.2f"|format(stats.last_24h.average) }} hPa</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Change</div>
+                        <div class="stat-value">{{ "%+.2f"|format(stats.last_24h.change) }} hPa</div>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <p></p>
+        {% endif %}
+
+        <img src="/static/stabbypeng.png"  > 
+    </div>
+</body>
+</html>

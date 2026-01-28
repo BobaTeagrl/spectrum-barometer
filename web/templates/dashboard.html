@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Barometer Dashboard</title>
+    <style>
+        body.dark {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0d1627;
+        }
+
+        .card {
+            background: #0c1c23;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: (#0b1b22);
+        }
+        .current-reading {
+            font-size: 48px;
+            font-weight: bold;
+            color: #DDAED3;
+            text-align: center;
+        }
+        .timestamp {
+            text-align: center;
+            color: #DDAED3;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #DDAED3;
+        }
+        .graph {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .flash {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .flash.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .flash.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .flash.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        nav {
+            background: #DDAED3;
+            padding: 15px;
+            margin: -20px -20px 20px -20px;
+            border-radius: 8px 8px 0 0;
+
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .center-header {
+          text-align: center;
+          font-size: 2rem;
+          color: #DDAED3;
+        }
+        a {
+            color: #DDAED3;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .button-container form {
+            display: inline-block;
+            margin: 0 5px;
+        }
+        
+        button {
+            background: #1f2c79;
+            color: #DDAED3;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #1A5F7A;
+        }
+        button.btn-success {
+            background: #1f2c79;
+        }
+        button.btn-success:hover {
+            background: #0a6ea8;
+        }
+        button.btn-danger {
+            background: #dc3545;
+        }
+        button.btn-danger:hover {
+            background: #c82333;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        button:hover {
+            background: #1A5F7A;
+        }
+
+        .status-stopped {
+            color: #721c24;
+        }
+        .status-running{
+            color: #DDAED3;
+        }
+        .monitor-controls {
+            background: #0c1c23;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #DDAED3;
+            text-align: center;
+        }
+        .monitor-controls h3 {
+            margin-top: 0;
+        }
+        .monitor-controls form {
+            display: inline-block;  
+            margin: 10px 0;
+}
+        .interval-input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #DDAED3;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 0 10px;
+            background-color: #DDAED3;
+      
+        }
+        h1,h2 {
+            color: #DDAED3;
+            text-align: center;
+        }
+        .version{
+            color: #7b0dbb;
+            text-align: right;
+        
+        }
+
+        .monitor-controls, .graph-controls, .archive-controls {
+            background: #0c1c23;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            color: #DDAED3;
+        }
+        .monitor-controls h3, .graph-controls h3, .archive-controls h3 {
+            margin-top: 0;
+        }
+        .monitor-controls p, .graph-controls p, .archive-controls p {
+            margin: 10px 0;
+        }
+        .monitor-controls form, .graph-controls form, .archive-controls form {
+            margin: 15px 0;
+        }
+        .monitor-controls label, .graph-controls label, .archive-controls label {
+            display: inline-block;
+            margin: 0 10px;
+            
+        }
+        .input-field, select {
+            padding: 8px;
+            border: 1px solid #DDAED3;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 0 5px;
+            background-color: #DDAED3;
+        }
+        .input-field {
+            width: 80px;
+        }
+        select {
+            width: 150px;
+        }
+        .graph-viewer {
+            background: #0c1c23;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .graph-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .graph-tab {
+            background: #1f2c79;
+            color: #DDAED3;
+            border: 2px solid transparent;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .graph-tab:hover {
+            background: #1A5F7A;
+            border-color: #DDAED3;
+        }
+        .graph-tab.active {
+            background: #DDAED3;
+            color: #0d1627;
+            border-color: #DDAED3;
+        }
+        #currentGraph {
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+        }
+    </style>
+    <script>
+        function showGraph(graphName) {
+            const img = document.getElementById('currentGraph');
+            const timestamp = new Date().getTime();
+            img.src = "{{ url_for('main.graph_file', name='PLACEHOLDER') }}".replace('PLACEHOLDER', graphName) + '?v=' + timestamp;
+            
+            // update active tab
+            document.querySelectorAll('.graph-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // handle missing images 
+            img.onerror = function() {
+                alert('Graph "' + graphName + '" not found. Generate it first using the graph controls.');
+                // revert to dashboard
+                showDefaultGraph();
+            };
+        }
+        
+        function showDefaultGraph() {
+            const img = document.getElementById('currentGraph');
+            const timestamp = new Date().getTime();
+            img.src = "{{ url_for('main.graph_file', name='pressure.png') }}?v=" + timestamp;
+            
+            // Reset active tab
+            document.querySelectorAll('.graph-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector('.graph-tab').classList.add('active');
+        }
+    </script>
+    <!-- theme switching might add keep just dark for now -->
+</head>
+<body class="{{ theme }}">
+  <div class="card" >
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}" >Dashboard</a>
+            <a href="{{ url_for('main.stats') }}">Statistics</a>
+            <a class="version" href="https://github.com/BobaTeagrl/spectrum-barometer">V 2.0.0 :3</a>
+        </nav>
+        
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    
+
+        <h1>
+            Barometer Dashboard
+            {% if monitor.running %}
+                <span class="status-badge status-running">● Monitoring</span>
+            {% else %}
+                <span class="status-badge status-stopped">● Stopped</span>
+            {% endif %}
+        </h1>      
+
+        {% if latest %}
+        <div class="current-reading">
+            {{ "%.2f"|format(latest.pressure) }} hPa
+        </div>
+        <div class="timestamp">
+            Last reading: {{ latest.timestamp }}
+        </div>
+    {% else %}
+        <p></p>
+    {% endif %}
+        
+        <div class="monitor-controls">
+            <h3>Background Monitoring</h3>
+            
+            {% if monitor.running %}
+                <p>
+                    Currently monitoring every 
+                    <strong>{{ monitor.interval }}</strong> seconds
+                </p>
+                <form action="{{ url_for('main.monitor_stop') }}" method="post">
+                    <button type="submit" class="btn-danger">Stop Monitoring</button>
+                </form>
+            {% else %}
+                <p>Start automatic data collection in the background</p>
+                <form action="{{ url_for('main.monitor_start') }}" method="post" style="align-items: center; gap: 10px;">
+                    <label>
+                        Interval:
+                        <input type="number" 
+                               name="interval" 
+                               value="300" 
+                               min="0" 
+                               max="3600" 
+                               class="interval-input">
+                        seconds
+                    </label>
+                    <button type="submit" class="btn-success">Start Monitoring</button>
+                </form>
+            {% endif %}
+            <form action="{{ url_for('main.scrape') }}" method="post" style="display: inline-block; margin: 10px;">
+                <button type="submit">Scrape Now</button>
+            </form>
+            </div>
+
+
+                <div class="button-container">
+
+                    <div class="graph-controls">
+                        <h3>Generate Graph</h3>
+                        <form action="{{ url_for('main.generate') }}" method="post">
+                            <label>
+                                Type:
+                                <select name="graph_type" class="input-field" style="width: 150px;">
+                                    <option value="line">Line</option>
+                                    <option value="smooth">Smooth</option>
+                                    <option value="area">Area</option>
+                                    <option value="daily">Daily Summary</option>
+                                    <option value="distribution">Distribution</option>
+                                    <option value="change">Rate of Change</option>
+                                    <option value="dashboard" selected>Dashboard</option>
+                                    <option value="all">All Graphs</option>
+                                </select>
+                            </label>
+                            <label>
+                                Days:
+                                <input type="number" name="days" value="7" min="1" max="365" class="input-field">
+                            </label>
+                            <button type="submit">Generate</button>
+                        </form>
+                    </div>
+
+
+        <div class="archive-controls">
+            <h3>Data Management</h3>
+
+            <form action="{{ url_for('main.archive') }}" method="post" style="display: inline-block; margin: 10px;">
+                <label>
+                    Keep last:
+                    <input type="number" name="keep_days" value="90" min="0" max="365" class="input-field">
+                    days
+                </label>
+                <button type="submit" onclick="return confirm('Archive older data?')">
+                    Archive Data
+                </button>
+            </form>
+        </div>
+
+
+        {% if has_graphs %}
+        <div class="graph-viewer">
+            <h3 style="text-align: center; color: #DDAED3;">Graph Viewer</h3>
+            <div class="graph-tabs">
+                <button class="graph-tab active" onclick="showGraph('pressure.png')">Dashboard</button>
+                <button class="graph-tab" onclick="showGraph('pressure_line.png')">Line</button>
+                <button class="graph-tab" onclick="showGraph('pressure_smooth.png')">Smooth</button>
+                <button class="graph-tab" onclick="showGraph('pressure_area.png')">Area</button>
+                <button class="graph-tab" onclick="showGraph('pressure_daily.png')">Daily</button>
+                <button class="graph-tab" onclick="showGraph('pressure_distribution.png')">Distribution</button>
+                <button class="graph-tab" onclick="showGraph('pressure_change.png')">Rate of Change</button>
+            </div>
+            <img id="currentGraph" src="{{ url_for('main.graph_file', name='pressure.png') }}?v={{ graph_ts }}"
+                 alt="Pressure graph" width="100%">
+        </div>
+        {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -85,10 +85,24 @@ barometer stats
 # Archive old data
 barometer archive
 
+# Open the local web UI
+barometer web
+
+# Check if the scraper is on
+barometer status
+
+# Show information about data locations and project setup
+barometer info
+
 Append --help to any command to see extra options
 
 ```
 
+## WEB UI
+
+Both the cli and web UI are seperate from the scraper, meaning you can start, stop and check its status from either at any time and if started, it will continue to run until turned off. Even if the local server for the UI is stopped. This is double sided as it makes background operation effortless while also making it easy to forget its running in the background (helped by how few recorces it takes up)
+
+(screenshots here soon)
 ## Finding Your Data
 
 Everything is stored in `~/spectrum-barometer/`:
@@ -116,12 +130,15 @@ The barometer seems to update every second but that's super overkill lol but you
 
 ### Will you update this ever?
 
-I may make a fully optional web GUI at some point for fun but its in a very usable state already. Plus cli tools are just kinda fun :3
+If i have new ideas or find bugs/bugs get reported i may but as it sits with 2.0.0 im not sure what more i would add to this tool that would be more than just bloat.
 
 ### How hard is it to run?
 
-When taking a reading it might take a few % of CPU and max ram use i personally have seen is 111MB (though not to say it can never get higher i cant know for sure I'm just one person) but when sitting idle its no CPU. i wanted this to be able to run on anything from a raspberry pi you already have set up running pi hole or something to someones single laptop that they are actively pushing while it runs in the background (because that's me)
+When taking a reading it might take a few % of CPU and max ram use i personally have seen is 111MB (though not to say it can never get higher i cant know for sure I'm just one person) but when sitting idle its no CPU. i wanted this to be able to run on anything from a raspberry pi you already have set up running pi hole or something to someones single laptop that they are actively pushing while it runs in the background (because that's me). The web UI takes about 10-20MB of RAM loading and less just sitting there according to firefox profiler.
 
+### Can i use this on (Insert other router here)?
+
+idk! figure it out! I see no reason it couldnt given the correct login and webpage but the scraping logic is a little basic so if the barometer data doesnt sit in a table element, it would not be found. Its totally possible to modify this tool to better scrape more routers but i only have the one to test on so if you want that fuctionality make it yourself or send me your router and like 20$ lol
 
 # None of this would be possible without the work of MeisterLone on GitHub
 
