@@ -261,44 +261,6 @@ def test(ctx):
         click.echo(f" Error: {e}")
         logging.error(f"Test failed: {e}")
 
-'''
-@cli.command()
-@click.option('--interval', '-i', default=300, help='Interval between readings in seconds (default: 300)')
-@click.pass_context
-def monitor(ctx, interval):
-    """start continuous monitoring (default mode)"""
-    click.echo(f"Starting continuous monitoring (interval: {interval}s)")
-    click.echo("Press Ctrl+C to stop\n")
-    
-    scraper = BarometerScraper()
-    readings_count = 0
-    
-    while True:
-        try:
-            response = scraper.login()
-            
-            if response:
-                pressure = scraper.extract_barometer_value(response.text)
-                
-                if pressure:
-                    scraper.save_reading(pressure)
-                    readings_count += 1
-                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    click.echo(f"[{timestamp}] Pressure: {pressure/100:.2f} hPa | Total readings: {readings_count}")
-                else:
-                    click.echo(" Failed to extract pressure value")
-            else:
-                click.echo(" Connection failed")
-                
-        except KeyboardInterrupt:
-            click.echo(f"\n\nStopping monitoring... (collected {readings_count} readings)")
-            break
-        except Exception as e:
-            click.echo(f" Error: {e}")
-            logging.error(f"Monitor error: {e}")
-        
-        time.sleep(interval)
-'''
 
 @cli.command()
 @click.pass_context

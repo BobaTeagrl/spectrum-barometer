@@ -36,18 +36,48 @@ def graph_file(name):
 @bp.route("/generate", methods=["POST"])
 def generate():
     theme = request.form.get("theme", "dark")
-    days = request.form.get("days")
-    days = int(days)
-    print(days, type(days))
+    days = request.form.get("days", 7, type=int)
+    graph_type = request.form.get("graph_type", "dashboard")
+    
     try:
-        result = generate_graph(days=days, output=None, graph_type='dashboard', include_archives=False)
-        if result:
-            flash("Graph generated successfully!", "success")
+        if graph_type == 'all':
+            # gwnerate all graph types
+            result = generate_graph(
+                days=days, 
+                output=get_graphs_dir() / 'pressure.png',
+                graph_type='all', 
+                include_archives=False, 
+                theme=theme
+            )
+            flash("All graphs generated successfully!", "success")
         else:
-            flash("Failed to generate graph", "error")
+            # map graph types to filenames
+            filename_map = {
+                'line': 'pressure_line.png',
+                'smooth': 'pressure_smooth.png',
+                'area': 'pressure_area.png',
+                'daily': 'pressure_daily.png',
+                'distribution': 'pressure_distribution.png',
+                'change': 'pressure_change.png',
+                'dashboard': 'pressure.png'
+            }
+            
+            output_file = get_graphs_dir() / filename_map.get(graph_type, 'pressure.png')
+            
+            result = generate_graph(
+                days=days, 
+                output=output_file, 
+                graph_type=graph_type, 
+                include_archives=False, 
+                theme=theme
+            )
+            
+            if result or graph_type == 'dashboard':  # dashboard doesn't return a path
+                flash(f"{graph_type.title()} graph generated successfully!", "success")
+            else:
+                flash("Failed to generate graph", "error")
     except Exception as e:
         flash(f"Error generating graph: {e}", "error")
-        print(days, type(days))
 
     return redirect(url_for("main.dashboard"))
 
@@ -63,6 +93,7 @@ def scrape():
         flash(result['message'], "error")
     
     return redirect(url_for("main.dashboard"))
+
 
 @bp.route("/archive", methods=["POST"])
 def archive():
@@ -110,5 +141,3 @@ def monitor_stop():
         flash(result['message'], "error")
     
     return redirect(url_for("main.dashboard"))
-
-

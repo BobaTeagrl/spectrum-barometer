@@ -57,6 +57,11 @@
             color: #DDAED3;
             text-align: center;
         }
+        .version{
+            color: #7b0dbb;
+            text-align: right;
+        
+        }
     </style>
 </head>
 <body>
@@ -64,6 +69,8 @@
         <nav>
             <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
             <a href="{{ url_for('main.stats') }}">Statistics</a>
+            <a class="version" href="https://github.com/BobaTeagrl/spectrum-barometer">V 2.0.0 :3</a>
+
         </nav>
         
         <h1>Statistics</h1>
@@ -126,7 +133,7 @@
                 </div>
             {% endif %}
         {% else %}
-            <p>No data available yet. Run 'barometer monitor' to collect data.</p>
+            <p></p>
         {% endif %}
 
         <img src="/static/stabbypeng.png"  > 

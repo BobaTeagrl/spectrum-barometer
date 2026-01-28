@@ -198,7 +198,76 @@
         select {
             width: 150px;
         }
+        .graph-viewer {
+            background: #0c1c23;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .graph-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .graph-tab {
+            background: #1f2c79;
+            color: #DDAED3;
+            border: 2px solid transparent;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .graph-tab:hover {
+            background: #1A5F7A;
+            border-color: #DDAED3;
+        }
+        .graph-tab.active {
+            background: #DDAED3;
+            color: #0d1627;
+            border-color: #DDAED3;
+        }
+        #currentGraph {
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+        }
     </style>
+    <script>
+        function showGraph(graphName) {
+            const img = document.getElementById('currentGraph');
+            const timestamp = new Date().getTime();
+            img.src = "{{ url_for('main.graph_file', name='PLACEHOLDER') }}".replace('PLACEHOLDER', graphName) + '?v=' + timestamp;
+            
+            // update active tab
+            document.querySelectorAll('.graph-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // handle missing images 
+            img.onerror = function() {
+                alert('Graph "' + graphName + '" not found. Generate it first using the graph controls.');
+                // revert to dashboard
+                showDefaultGraph();
+            };
+        }
+        
+        function showDefaultGraph() {
+            const img = document.getElementById('currentGraph');
+            const timestamp = new Date().getTime();
+            img.src = "{{ url_for('main.graph_file', name='pressure.png') }}?v=" + timestamp;
+            
+            // Reset active tab
+            document.querySelectorAll('.graph-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector('.graph-tab').classList.add('active');
+        }
+    </script>
     <!-- theme switching might add keep just dark for now -->
 </head>
 <body class="{{ theme }}">
@@ -236,7 +305,7 @@
             Last reading: {{ latest.timestamp }}
         </div>
     {% else %}
-        <p>No data available yet. Run the monitor to collect data.</p>
+        <p></p>
     {% endif %}
         
         <div class="monitor-controls">
@@ -266,6 +335,9 @@
                     <button type="submit" class="btn-success">Start Monitoring</button>
                 </form>
             {% endif %}
+            <form action="{{ url_for('main.scrape') }}" method="post" style="display: inline-block; margin: 10px;">
+                <button type="submit">Scrape Now</button>
+            </form>
             </div>
 
 
@@ -274,7 +346,19 @@
                     <div class="graph-controls">
                         <h3>Generate Graph</h3>
                         <form action="{{ url_for('main.generate') }}" method="post">
-
+                            <label>
+                                Type:
+                                <select name="graph_type" class="input-field" style="width: 150px;">
+                                    <option value="line">Line</option>
+                                    <option value="smooth">Smooth</option>
+                                    <option value="area">Area</option>
+                                    <option value="daily">Daily Summary</option>
+                                    <option value="distribution">Distribution</option>
+                                    <option value="change">Rate of Change</option>
+                                    <option value="dashboard" selected>Dashboard</option>
+                                    <option value="all">All Graphs</option>
+                                </select>
+                            </label>
                             <label>
                                 Days:
                                 <input type="number" name="days" value="7" min="1" max="365" class="input-field">
@@ -286,9 +370,7 @@
 
         <div class="archive-controls">
             <h3>Data Management</h3>
-            <form action="{{ url_for('main.scrape') }}" method="post" style="display: inline-block; margin: 10px;">
-                <button type="submit">Scrape Now</button>
-            </form>
+
             <form action="{{ url_for('main.archive') }}" method="post" style="display: inline-block; margin: 10px;">
                 <label>
                     Keep last:
@@ -303,8 +385,20 @@
 
 
         {% if has_graphs %}
-        <img src="{{ url_for('main.graph_file', name='pressure.png') }}?v={{ graph_ts }}"
-             alt="Pressure graph" width="100%">
+        <div class="graph-viewer">
+            <h3 style="text-align: center; color: #DDAED3;">Graph Viewer</h3>
+            <div class="graph-tabs">
+                <button class="graph-tab active" onclick="showGraph('pressure.png')">Dashboard</button>
+                <button class="graph-tab" onclick="showGraph('pressure_line.png')">Line</button>
+                <button class="graph-tab" onclick="showGraph('pressure_smooth.png')">Smooth</button>
+                <button class="graph-tab" onclick="showGraph('pressure_area.png')">Area</button>
+                <button class="graph-tab" onclick="showGraph('pressure_daily.png')">Daily</button>
+                <button class="graph-tab" onclick="showGraph('pressure_distribution.png')">Distribution</button>
+                <button class="graph-tab" onclick="showGraph('pressure_change.png')">Rate of Change</button>
+            </div>
+            <img id="currentGraph" src="{{ url_for('main.graph_file', name='pressure.png') }}?v={{ graph_ts }}"
+                 alt="Pressure graph" width="100%">
+        </div>
         {% endif %}
         </div>
     </div>
