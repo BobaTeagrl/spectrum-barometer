@@ -14,22 +14,49 @@ def get_interval_file():
     """Get path to interval file"""
     return get_app_dir() / 'monitor.interval'
 
+def get_pid_file():
+    """Get path to PID file"""
+    return get_app_dir() / 'monitor.pid'
+
 def is_monitoring():
     """Check if monitoring thread is running (in THIS process)"""
+    import os
+    import psutil
+    
     state_file = get_state_file()
-    if not state_file.exists():
+    pid_file = get_pid_file()
+    
+    if not state_file.exists() or not pid_file.exists():
         return False
     
     try:
         state = state_file.read_text().strip()
-        return state == 'running'
+        pid = int(pid_file.read_text().strip())
+        
+        # Check if state says running AND process exists
+        if state != 'running':
+            return False
+            
+        # Check if the PID is still alive
+        if psutil.pid_exists(pid):
+            return True
+        else:
+            # Stale state files - clean them up
+            state_file.unlink(missing_ok=True)
+            pid_file.unlink(missing_ok=True)
+            get_interval_file().unlink(missing_ok=True)
+            return False
     except:
         return False
 
 def get_monitor_info():
     """Get monitoring status"""
+    import os
+    
     interval_file = get_interval_file()
+    pid_file = get_pid_file()
     interval = 300
+    pid = None
     
     if interval_file.exists():
         try:
@@ -37,11 +64,17 @@ def get_monitor_info():
         except ValueError:
             pass
     
+    if pid_file.exists():
+        try:
+            pid = int(pid_file.read_text().strip())
+        except ValueError:
+            pass
+    
     running = is_monitoring()
     
     return {
         'running': running,
-        'pid': None,
+        'pid': pid if running else None,
         'interval': interval if running else None,
     }
 
@@ -77,21 +110,26 @@ def _monitor_loop(interval):
 def start_monitoring(interval=300):
     """Start monitoring in background thread"""
     global _monitor_thread
+    import os
     
     state_file = get_state_file()
     interval_file = get_interval_file()
+    pid_file = get_pid_file()
     
-    if state_file.exists() and state_file.read_text().strip() == 'running':
+    # Check if already running (cleans up stale files automatically)
+    if is_monitoring():
+        pid = int(pid_file.read_text().strip()) if pid_file.exists() else None
         return {
             'success': False,
             'message': 'Monitoring is already running',
-            'pid': None
+            'pid': pid
         }
     
     try:
-        # Write state files
+        # Write state files including PID
         state_file.write_text('running')
         interval_file.write_text(str(interval))
+        pid_file.write_text(str(os.getpid()))
         
         # Start thread
         _monitor_thread = threading.Thread(
@@ -105,10 +143,11 @@ def start_monitoring(interval=300):
         return {
             'success': True,
             'message': f'Monitoring started (interval: {interval}s)',
-            'pid': None
+            'pid': os.getpid()
         }
     except Exception as e:
         state_file.unlink(missing_ok=True)
+        pid_file.unlink(missing_ok=True)
         return {
             'success': False,
             'message': f'Failed to start: {e}',
@@ -119,6 +158,7 @@ def stop_monitoring():
     """Stop monitoring thread"""
     state_file = get_state_file()
     interval_file = get_interval_file()
+    pid_file = get_pid_file()
     
     if not state_file.exists():
         return {
@@ -126,9 +166,10 @@ def stop_monitoring():
             'message': 'Monitoring is not running'
         }
     
-    # Signal thread to stop
+    # Signal thread to stop and clean up all state files
     state_file.unlink(missing_ok=True)
     interval_file.unlink(missing_ok=True)
+    pid_file.unlink(missing_ok=True)
     
     return {
         'success': True,

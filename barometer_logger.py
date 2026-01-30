@@ -124,7 +124,7 @@ def cli(ctx, verbose):
 @cli.command()
 def version():
     """Show version information"""
-    click.echo("spectrum-barometer version 2.0.0! (that was fast :3)")
+    click.echo("spectrum-barometer version 2.1.1! (that was fast :3)")
 
 
 @cli.command()
@@ -387,27 +387,14 @@ def web(port):
     app.run(host="127.0.0.1", port=5888)
 
 
-@cli.command()
-@click.pass_context
-def status(ctx):
-    """Check monitoring status"""
 
-    from barometer.background import get_monitor_info
-    
-    info = get_monitor_info()
-    
-    if info['running']:
-        click.echo(f"✓ Monitoring is RUNNING")
-        click.echo(f"  Interval: {info['interval']} seconds")
-    else:
-        click.echo("✗ Monitoring is STOPPED")
 
 
 @cli.command()
 @click.option('--interval', '-i', default=300, show_default=True, help='Interval between readings in seconds')
 @click.pass_context
 def start(ctx, interval):
-    """Start background monitoring"""
+    """Start monitoring (runs in foreground)"""
     
     from barometer.background import start_monitoring
 
@@ -416,6 +403,18 @@ def start(ctx, interval):
     if result['success']:
         click.echo(f"✓ {result['message']}")
         click.echo(f"  PID: {result['pid']}")
+        click.echo("\nMonitoring started. Press Ctrl+C to stop...")
+        
+        try:
+            # Keep process alive
+            import time
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            click.echo("\n\nStopping monitoring...")
+            from barometer.background import stop_monitoring
+            stop_monitoring()
+            click.echo("Monitoring stopped")
     else:
         click.echo(f"✗ {result['message']}")
 
