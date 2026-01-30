@@ -133,7 +133,7 @@ If i have new ideas or find bugs/bugs get reported i may but as it sits with 2.0
 
 ### How hard is it to run?
 
-When taking a reading it might take a few % of CPU and max ram use i personally have seen is 111MB (though not to say it can never get higher i cant know for sure I'm just one person) but when sitting idle its no CPU. i wanted this to be able to run on anything from a raspberry pi you already have set up running pi hole or something to someones single laptop that they are actively pushing while it runs in the background (because that's me). The web UI takes about 10-20MB of RAM loading and less just sitting there according to firefox profiler.
+When taking a reading it might take a few % of CPU and max ram use i personally have seen is 111MB for the cli scraping or 170 for the web UI(though not to say it can never get higher i cant know for sure I'm just one person) but when sitting idle its no CPU. i wanted this to be able to run on anything from a raspberry pi you already have set up running pi hole or something to someones single laptop that they are actively pushing while it runs in the background (because that's me). The web UI takes about 10-20MB of RAM loading and less just sitting there according to firefox profiler.
 
 ### Can i use this on (Insert other router here)?
 
