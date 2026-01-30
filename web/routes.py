@@ -24,6 +24,7 @@ def dashboard():
         theme=theme,
         graph_ts=int(time()),
         monitor=monitor_info,
+        can_control_monitor=monitor_info.get('owned_by_me', False) or not monitor_info.get('running', False),
         graph_types=['line', 'smooth', 'area', 'daily', 'distribution', 'change', 'dashboard'],
     )
 
@@ -133,6 +134,13 @@ def monitor_start():
 
 @bp.route("/monitor/stop", methods=["POST"])
 def monitor_stop():
+    from barometer.background import is_owned_by_current_process
+    
+    # check if we can stop it
+    if not is_owned_by_current_process():
+        flash("Cannot stop monitoring - it's running in a different process (e.g., CLI). Stop it from where you started it", "error")
+        return redirect(url_for("main.dashboard"))
+    
     result = stop_monitoring()
     
     if result['success']:

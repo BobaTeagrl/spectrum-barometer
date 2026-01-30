@@ -11,15 +11,15 @@ def create_app():
     from web.routes import bp
     app.register_blueprint(bp)
     
-    # cleanup monitoring on shutdown
+    # Cleanup monitoring on shutdown ONLY if we own it
     def cleanup():
-        from barometer.background import stop_monitoring, is_monitoring
-        if is_monitoring():
+        from barometer.background import is_owned_by_current_process, stop_monitoring
+        if is_owned_by_current_process():
             stop_monitoring()
     
     atexit.register(cleanup)
     
-    # handle Ctrl+C gracefully
+    # Handle Ctrl+C gracefully
     def signal_handler(sig, frame):
         cleanup()
         sys.exit(0)

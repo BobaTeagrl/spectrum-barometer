@@ -97,7 +97,7 @@ Append --help to any command to see extra options
 
 ## WEB UI
 
-You can run the scraper from the web UI or cli but ending the process stops the scrape. i thought i knew how to get around that, but i dont lol. if you do feel free to fork and if you can you will be pulled into the main codebase but for now we live with these limits. the good news is either are both quite light to run and if you run start in terminal, then open a new one and run web and you can freely play in the ui without stopping monitor as long as you dont hit the big red button and start it again, then the process if part of the web server. so feel free to pick whatever is easier for you!
+You can run the scraper from the web UI or cli but ending the process stops the scrape. i thought i knew how to get around that, but i dont lol. if you do feel free to fork and if you can you will be pulled into the main codebase but for now we live with these limits. the good news is either are both quite light to run and if you run start in terminal, then open a new one and run web and you can freely play in the ui without stopping monitor, so feel free to pick whatever is easier for you!
 
 ![image](./README_IMAGES/webui.png "web ui dashboard")
 ![image](./README_IMAGES/stats.png "web stats page")
